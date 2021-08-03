@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "228911458191",
+    "project_id": "notejetaktu",
+    "storage_bucket": "notejetaktu.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:228911458191:android:5f464dec07a070575c4dfa",
+        "android_client_info": {
+          "package_name": "com.example.notejet"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "228911458191-95n0vvf005u22e2r2895mecigbqc1901.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.notejet",
+            "certificate_hash": "5bae019847b4b52f8325601e8fff0ccc2ef64572"
+          }
+        },
+        {
+          "client_id": "228911458191-4evnenhqkvsevqgsk0s4430870ap6iu3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtcxLtaGlddhupCI9qImDTxnEmCwDji84"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "228911458191-4evnenhqkvsevqgsk0s4430870ap6iu3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
