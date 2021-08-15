@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:notejet/pages/home.dart';
 
 class UpdateProfile extends StatefulWidget {
   const UpdateProfile({Key key}) : super(key: key);
@@ -19,15 +20,15 @@ class _UpdateProfileState extends State<UpdateProfile> {
     return users
         .doc(FirebaseAuth.instance.currentUser.email)
         .set({
-          'branch': branch,
-          'semester': semester,
+          'branch': 'cseit',
+          'year': int.parse(year),
         })
         .then((value) => print("User Added"))
         .catchError((error) => print("Failed to add user: $error"));
   }
 
   String branch = "";
-  String semester = "";
+  String year = "";
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,29 +45,6 @@ class _UpdateProfileState extends State<UpdateProfile> {
               SizedBox(
                 height: 10,
               ),
-              CupertinoButton(
-                color: CupertinoColors.darkBackgroundGray,
-                onPressed: () {
-                  showCupertinoModalPopup<void>(
-                    context: context,
-                    builder: (BuildContext context) => CupertinoActionSheet(
-                      title: branch.length == 0
-                          ? Text('Select Branch')
-                          : Text(branch),
-                      actions: <CupertinoActionSheetAction>[
-                        CupertinoActionSheetAction(
-                          child: const Text('CSE/IT'),
-                          onPressed: () {
-                            branch = "cseit";
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                child: const Text('Select Branch'),
-              ),
               SizedBox(
                 height: 10,
               ),
@@ -76,61 +54,41 @@ class _UpdateProfileState extends State<UpdateProfile> {
                   showCupertinoModalPopup<void>(
                     context: context,
                     builder: (BuildContext context) => CupertinoActionSheet(
-                      title: const Text('Select Semester'),
+                      title: const Text('Select Year'),
                       actions: <CupertinoActionSheetAction>[
                         CupertinoActionSheetAction(
                           child: const Text('1st'),
                           onPressed: () {
-                            semester = "1";
+                            setState(() {
+                              year = "1";
+                            });
                             Navigator.pop(context);
                           },
                         ),
                         CupertinoActionSheetAction(
                           child: const Text('2nd'),
                           onPressed: () {
-                            semester = "2";
+                            setState(() {
+                              year = "2";
+                            });
                             Navigator.pop(context);
                           },
                         ),
                         CupertinoActionSheetAction(
                           child: const Text('3rd'),
                           onPressed: () {
-                            semester = "3";
+                            setState(() {
+                              year = "3";
+                            });
                             Navigator.pop(context);
                           },
                         ),
                         CupertinoActionSheetAction(
                           child: const Text('4th'),
                           onPressed: () {
-                            semester = "4";
-                            Navigator.pop(context);
-                          },
-                        ),
-                        CupertinoActionSheetAction(
-                          child: const Text('5th'),
-                          onPressed: () {
-                            semester = "5";
-                            Navigator.pop(context);
-                          },
-                        ),
-                        CupertinoActionSheetAction(
-                          child: const Text('6th'),
-                          onPressed: () {
-                            semester = "6";
-                            Navigator.pop(context);
-                          },
-                        ),
-                        CupertinoActionSheetAction(
-                          child: const Text('7th'),
-                          onPressed: () {
-                            semester = "7";
-                            Navigator.pop(context);
-                          },
-                        ),
-                        CupertinoActionSheetAction(
-                          child: const Text('8th'),
-                          onPressed: () {
-                            semester = "8";
+                            setState(() {
+                              year = "4";
+                            });
                             Navigator.pop(context);
                           },
                         ),
@@ -138,7 +96,9 @@ class _UpdateProfileState extends State<UpdateProfile> {
                     ),
                   );
                 },
-                child: const Text('Select Semester'),
+                child: year.length > 0
+                    ? Text("Selected year : " + year)
+                    : Text('Select Year'),
               ),
               Container(
                 padding: EdgeInsets.symmetric(vertical: 25),
@@ -151,6 +111,8 @@ class _UpdateProfileState extends State<UpdateProfile> {
                       backgroundColor: Colors.green,
                       content: Text("Profile Updated"),
                     ));
+                    Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: (context) => HomePage()));
                   },
                   child: Text(
                     'Update Profile',

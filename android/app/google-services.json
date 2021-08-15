@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:228911458191:android:5f464dec07a070575c4dfa",
         "android_client_info": {
-          "package_name": "com.example.notejet"
+          "package_name": "com.codewithprince.notejet"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "228911458191-95n0vvf005u22e2r2895mecigbqc1901.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.notejet",
+            "package_name": "com.codewithprince.notejet",
             "certificate_hash": "5bae019847b4b52f8325601e8fff0ccc2ef64572"
           }
         },

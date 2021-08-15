@@ -1,14 +1,22 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:notejet/admob_service.dart';
+import 'package:notejet/pages/downloadpage.dart';
 import 'package:notejet/pages/webview.dart';
+
+import 'package:url_launcher/url_launcher.dart';
 
 class SubjectList extends StatefulWidget {
   final String collectionname;
   final String listType;
+  final bool isNotes;
 
-  const SubjectList({Key key, this.collectionname, this.listType})
+  const SubjectList({Key key, this.collectionname, this.listType, this.isNotes})
       : super(key: key);
 
   @override
@@ -17,20 +25,69 @@ class SubjectList extends StatefulWidget {
 
 class _SubjectListState extends State<SubjectList> {
   @override
+  void initState() {
+    super.initState();
+    print(widget.collectionname);
+    print('inint');
+    if (!_isInterstitialAdReady) {
+      _loadInterstitialAd();
+    }
+  }
+
+  // static String get interstitialAdUnitId => Platform.isAndroid
+  //     ? 'ca-app-pub-3940256099942544/1033173712'
+  //     : 'ca-app-pub-3940256099942544/1033173712';
+  static String get interstitialAdUnitId => Platform.isAndroid
+      ? 'ca-app-pub-9243136424645877/9718385107'
+      : 'ca-app-pub-9243136424645877/9718385107';
+  InterstitialAd _interstitialAd;
+
+  bool _isInterstitialAdReady = false;
+
+  void _loadInterstitialAd() {
+    InterstitialAd.load(
+      adUnitId: interstitialAdUnitId,
+      request: AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          this._interstitialAd = ad;
+
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) {
+              print('dimissed');
+            },
+          );
+
+          _isInterstitialAdReady = true;
+        },
+        onAdFailedToLoad: (err) {
+          print('Failed to load an interstitial ad: ${err.message}');
+          _isInterstitialAdReady = false;
+        },
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
         .collection(widget.collectionname)
         .snapshots();
     return Scaffold(
+      bottomNavigationBar: Container(
+          height: 100,
+          child: AdWidget(
+            key: UniqueKey(),
+            ad: AdMobService.creatBannerAd()..load(),
+          )),
       appBar: AppBar(
         iconTheme: IconThemeData(
-          color: Colors.black, //change your color here
+          color: Colors.white, //change your color here
         ),
         title: Text(
           widget.listType.toString(),
-          style: TextStyle(color: Colors.black87),
+          style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: Colors.white,
         elevation: 0,
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -54,59 +111,89 @@ class _SubjectListState extends State<SubjectList> {
                   document.data() as Map<String, dynamic>;
               return Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: ExpansionTile(
-                  title: Card(
-                    elevation: 0,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
+                child: widget.isNotes == true
+                    ? ExpansionTile(
+                        title: Card(
+                          elevation: 1,
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Text(
+                              data['name'],
+                              style: GoogleFonts.monda(
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
                         children: [
-                          SizedBox(
-                            height: 30,
-                            width: 30,
-                            child: Image(image: NetworkImage(data['imgUrl'])),
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Text(
-                            data['name'],
-                            style:
-                                GoogleFonts.monda(fontWeight: FontWeight.bold),
-                          ),
+                          data['unit1'] != null
+                              ? buildUnitCard(
+                                  context,
+                                  "Unit 1",
+                                  data['unit1'],
+                                )
+                              : SizedBox(
+                                  height: 0,
+                                ),
+                          data['unit2'] != null
+                              ? buildUnitCard(
+                                  context,
+                                  "Unit 2",
+                                  data['unit2'],
+                                )
+                              : SizedBox(
+                                  height: 0,
+                                ),
+                          data['unit3'] != null
+                              ? buildUnitCard(
+                                  context,
+                                  "Unit 3",
+                                  data['unit3'],
+                                )
+                              : SizedBox(
+                                  height: 0,
+                                ),
+                          data['unit4'] != null
+                              ? buildUnitCard(
+                                  context,
+                                  "Unit 4",
+                                  data['unit4'],
+                                )
+                              : SizedBox(
+                                  height: 0,
+                                ),
+                          data['unit5'] != null
+                              ? buildUnitCard(context, "Unit 5", data['unit5'])
+                              : SizedBox(
+                                  height: 0,
+                                )
                         ],
+                      )
+                    : GestureDetector(
+                        onTap: () async {
+                          if (_isInterstitialAdReady) {
+                            _interstitialAd.show();
+                          }
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => WebViewPage(
+                                      url: data['quantum'],
+                                    )),
+                          );
+                        },
+                        child: Card(
+                          color: Theme.of(context).primaryColor,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              data['name'],
+                              style: GoogleFonts.monda(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  children: [
-                    data['unit1'] != null
-                        ? buildUnitCard(context, "Unit 1", data['unit1'])
-                        : SizedBox(
-                            height: 0,
-                          ),
-                    data['unit2'] != null
-                        ? buildUnitCard(context, "Unit 2", data['unit2'])
-                        : SizedBox(
-                            height: 0,
-                          ),
-                    data['unit3'] != null
-                        ? buildUnitCard(context, "Unit 3", data['unit3'])
-                        : SizedBox(
-                            height: 0,
-                          ),
-                    data['unit4'] != null
-                        ? buildUnitCard(context, "Unit 4", data['unit4'])
-                        : SizedBox(
-                            height: 0,
-                          ),
-                    data['unit5'] != null
-                        ? buildUnitCard(context, "Unit 5", data['unit5'])
-                        : SizedBox(
-                            height: 0,
-                          )
-                  ],
-                ),
               );
             }).toList(),
           );
@@ -121,7 +208,9 @@ Widget buildUnitCard(BuildContext context, name, url) {
     width: double.infinity,
     padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
     child: GestureDetector(
-        onTap: () {
+        onTap: () async {
+          // await launch(url);
+
           Navigator.push(
             context,
             MaterialPageRoute(

@@ -52,10 +52,30 @@ class _BlogsRowState extends State<BlogsRow> {
                   );
                 },
                 child: Card(
-                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    elevation: 2,
                     child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          Container(
+                            decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20))),
+                            height: 20,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
+                              child: Text(
+                                data['title'],
+                                style: GoogleFonts.roboto(),
+                              ),
+                            ),
+                          ),
                           SizedBox(
                             height: 100,
                             width: 100,
@@ -64,18 +84,6 @@ class _BlogsRowState extends State<BlogsRow> {
                               fit: BoxFit.cover,
                             ),
                           ),
-                          Container(
-                            height: 20,
-                            color: Colors.blue,
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10),
-                              child: Text(
-                                data['title'],
-                                style: GoogleFonts.roboto(color: Colors.white),
-                              ),
-                            ),
-                          )
                         ])),
               );
             }).toList(),

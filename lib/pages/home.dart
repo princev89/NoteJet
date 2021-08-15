@@ -1,9 +1,18 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:notejet/admob_service.dart';
+import 'package:notejet/pages/addnote.dart';
+import 'package:notejet/pages/chats.dart';
 import 'package:notejet/pages/listsubjects.dart';
 import 'package:notejet/pages/update_profile.dart';
+import 'package:notejet/pages/writetous.dart';
 import 'package:notejet/widgets/blogs.dart';
 
 class HomePage extends StatefulWidget {
@@ -15,10 +24,25 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String branch = "";
-  String semester = "";
-  @override
-  void initState() {
-    super.initState();
+  String year = "";
+  bool isAdmin = false;
+
+  Future<void> checkAdmin() async {
+    FirebaseFirestore.instance
+        .collection('admins')
+        .doc(FirebaseAuth.instance.currentUser.email)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        setState(() {
+          isAdmin = true;
+        });
+      }
+    });
+  }
+
+  Future<void> getUser() async {
+    print('getting user');
     FirebaseFirestore.instance
         .collection('users')
         .doc(FirebaseAuth.instance.currentUser.email)
@@ -28,7 +52,7 @@ class _HomePageState extends State<HomePage> {
         print(documentSnapshot.get('branch'));
         setState(() {
           branch = documentSnapshot.get('branch');
-          semester = documentSnapshot.get('semester');
+          year = documentSnapshot.get('year').toString();
         });
       } else {
         print('Document does not exist on the database');
@@ -37,68 +61,123 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    if (!_isInterstitialAdReady) {
+      _loadInterstitialAd();
+    }
+    getUser();
+    checkAdmin();
+  }
+
+  // static String get interstitialAdUnitId => Platform.isAndroid
+  //     ? 'ca-app-pub-3940256099942544/1033173712'
+  //     : 'ca-app-pub-3940256099942544/1033173712';
+  static String get interstitialAdUnitId => Platform.isAndroid
+      ? 'ca-app-pub-9243136424645877/9718385107'
+      : 'ca-app-pub-9243136424645877/9718385107';
+  InterstitialAd _interstitialAd;
+
+  bool _isInterstitialAdReady = false;
+
+  void _loadInterstitialAd() {
+    InterstitialAd.load(
+      adUnitId: interstitialAdUnitId,
+      request: AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          this._interstitialAd = ad;
+
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) {
+              print('dimissed');
+            },
+          );
+
+          _isInterstitialAdReady = true;
+        },
+        onAdFailedToLoad: (err) {
+          print('Failed to load an interstitial ad: ${err.message}');
+          _isInterstitialAdReady = false;
+        },
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xff19324a),
+      bottomNavigationBar: Container(
+          height: 100,
+          width: double.infinity,
+          child: AdWidget(
+            key: UniqueKey(),
+            ad: AdMobService.creatBannerAd()..load(),
+          )),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    FirebaseAuth.instance.currentUser.displayName,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  Text(
+                    "Year: " + year.toString(),
+                    style: TextStyle(color: Colors.white),
+                  )
+                ],
+              ),
+            ),
+            ListTile(
+              title: const Text('Update Profile'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => UpdateProfile()),
+                );
+              },
+            ),
+            if (isAdmin == true)
+              ListTile(
+                title: Text('Add Notes'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AddNotes()),
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
       appBar: AppBar(
         title: Text(
           'NoteJet',
-          style: TextStyle(color: Colors.black87),
+          style: TextStyle(color: Colors.white),
         ),
-        leading: Icon(Icons.notes, color: Colors.black54),
-        backgroundColor: Colors.white,
         elevation: 0,
       ),
-      backgroundColor: Color(0xfff2f5f7),
       body: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                        // image: DecorationImage(
-                        //   image: NetworkImage(
-                        //       'https://i.pinimg.com/originals/32/b8/77/32b877ed4aa7778cc7d43ebb7d95a6f1.png'),
-                        //   fit: BoxFit.cover,
-                        // ),
-                        borderRadius:
-                            BorderRadius.only(bottomLeft: Radius.circular(30))),
-                    padding: EdgeInsets.symmetric(vertical: 20, horizontal: 30),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          FirebaseAuth.instance.currentUser.displayName,
-                          style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 22,
-                              color: Colors.black45),
-                        ),
-                        branch.length != 0
-                            ? Text(
-                                branch.toUpperCase(),
-                                style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black45),
-                              )
-                            : Text('Loading Branch'),
-                        branch.length != 0
-                            ? Text(
-                                "Semester No: " + semester,
-                                style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black45),
-                              )
-                            : Text('Loading Semester'),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+            Padding(
+              padding: const EdgeInsets.only(left: 20, top: 10),
+              child: Text(
+                FirebaseAuth.instance.currentUser.displayName,
+                style: GoogleFonts.poppins(
+                    fontSize: 18, color: CupertinoColors.white),
+              ),
             ),
             SizedBox(
               height: 20,
@@ -107,22 +186,16 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 GestureDetector(
-                  onTap: () {
-                    branch.length == 0
-                        ? ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            backgroundColor: Colors.green,
-                            content: Text(
-                                "Update your profile before using other options"),
-                          ))
-                        : Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SubjectList(
-                                collectionname:
-                                    branch.toString() + semester.toString(),
-                                listType: "Notes",
-                              ),
-                            ));
+                  onTap: () async {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SubjectList(
+                            collectionname: branch.toString() + year.toString(),
+                            listType: "Notes",
+                            isNotes: true,
+                          ),
+                        ));
                   },
                   child: Container(
                     padding: EdgeInsets.all(20),
@@ -141,8 +214,7 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         SizedBox(
                           height: 80,
-                          child: Image.network(
-                              'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Book-icon-bible.png/480px-Book-icon-bible.png'),
+                          child: Image.asset('assets/images/book.png'),
                         ),
                         Text(
                           "Notes",
@@ -155,49 +227,16 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {},
-                  child: Container(
-                    padding: EdgeInsets.all(20),
-                    height: 150,
-                    width: 150,
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.black38,
-                              blurRadius: 5,
-                              offset: Offset(0, 2))
-                        ]),
-                    child: Column(children: [
-                      SizedBox(
-                        height: 80,
-                        child: Image.network(
-                            'https://png.pngtree.com/element_our/png_detail/20181208/notes-icon-png_265236.jpg'),
-                      ),
-                      Text(
-                        "Books",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.black54),
-                      ),
-                    ]),
-                  ),
-                )
-              ],
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                GestureDetector(
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      backgroundColor: Colors.green,
-                      content: Text(
-                          "Work in Progress.... You may able to access in next update."),
-                    ));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SubjectList(
+                            collectionname: branch.toString() + year.toString(),
+                            listType: "Quantum",
+                            isNotes: false,
+                          ),
+                        ));
                   },
                   child: Container(
                     padding: EdgeInsets.all(20),
@@ -215,11 +254,52 @@ class _HomePageState extends State<HomePage> {
                     child: Column(children: [
                       SizedBox(
                         height: 80,
-                        child: Image.network(
-                            'https://icon-library.com/images/discussion-icon/discussion-icon-13.jpg'),
+                        child: Image.asset('assets/images/quantum.jpg'),
                       ),
                       Text(
-                        "Discussion",
+                        "Quantum",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black54),
+                      ),
+                    ]),
+                  ),
+                )
+              ],
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => WriteToUs(),
+                        ));
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(20),
+                    height: 150,
+                    width: 150,
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.black38,
+                              blurRadius: 5,
+                              offset: Offset(0, 2))
+                        ]),
+                    child: Column(children: [
+                      SizedBox(
+                        height: 80,
+                        child: Image.asset('assets/images/discuss.jpg'),
+                      ),
+                      Text(
+                        "Write To Us",
                         style: TextStyle(
                             fontWeight: FontWeight.bold, color: Colors.black54),
                       ),
@@ -228,9 +308,15 @@ class _HomePageState extends State<HomePage> {
                 ),
                 GestureDetector(
                   onTap: () {
+                    if (_isInterstitialAdReady) {
+                      _interstitialAd.show();
+                    }
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => UpdateProfile()),
+                      MaterialPageRoute(
+                          builder: (context) => Chats(
+                                year: 'chats' + year,
+                              )),
                     );
                   },
                   child: Container(
@@ -249,11 +335,10 @@ class _HomePageState extends State<HomePage> {
                     child: Column(children: [
                       SizedBox(
                         height: 80,
-                        child: Image.network(
-                            'https://www.shareicon.net/data/512x512/2016/06/30/788856_edit_512x512.png'),
+                        child: Image.asset('assets/images/updateprofile.png'),
                       ),
                       Text(
-                        "Update Profile",
+                        "Chats",
                         style: TextStyle(
                             fontWeight: FontWeight.bold, color: Colors.black54),
                       ),
@@ -266,29 +351,32 @@ class _HomePageState extends State<HomePage> {
               height: 30,
               thickness: 1,
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 26),
-              child: SizedBox(
-                  width: double.infinity,
-                  child: Text(
-                    'Blogs For You',
-                    style: GoogleFonts.poppins(color: Colors.black38),
-                  )),
-            ),
-            if (branch == "cseit")
-              Container(
-                height: 200,
-                child: BlogsRow(
-                  collectionname: 'cseitblogs',
+            Container(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 26),
+                      child: SizedBox(
+                          width: double.infinity,
+                          child: Text(
+                            'Blogs For You',
+                            style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold,
+                                color: CupertinoColors.white),
+                          )),
+                    ),
+                    Container(
+                      height: 150,
+                      child: BlogsRow(
+                        collectionname: 'cseitblogs',
+                      ),
+                    )
+                  ],
                 ),
               ),
-            // if (branch == "cseit")
-            //   Container(
-            //     height: 200,
-            //     child: BlogsRow(
-            //       collectionname: 'cseitblogs',
-            //     ),
-            //   )
+            ),
           ],
         ),
       ),

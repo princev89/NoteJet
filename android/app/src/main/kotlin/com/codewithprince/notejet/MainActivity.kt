@@ -1,4 +1,4 @@
-package com.example.notejet
+package com.codewithprince.notejet
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,14 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:notejet/pages/home.dart';
-import 'package:notejet/pages/signup.dart';
 
-class LogIn extends StatefulWidget {
-  const LogIn({Key key}) : super(key: key);
+class WriteToUs extends StatefulWidget {
+  const WriteToUs({Key key}) : super(key: key);
 
   @override
-  _LogInState createState() => _LogInState();
+  _WriteToUsState createState() => _WriteToUsState();
 }
 
 Widget buildEmail() {
@@ -50,52 +49,13 @@ Widget buildEmail() {
   );
 }
 
-Widget buildPassword() {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        'Password',
-        style: TextStyle(
-            fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-      SizedBox(
-        height: 10,
-      ),
-      Container(
-        alignment: Alignment.centerLeft,
-        decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                  color: Colors.black38, blurRadius: 5, offset: Offset(0, 2))
-            ]),
-        height: 50,
-        child: TextField(
-          keyboardType: TextInputType.emailAddress,
-          style: TextStyle(color: Colors.black87),
-          decoration: InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.only(top: 10),
-              prefixIcon: Icon(
-                Icons.lock_outline,
-                color: Colors.blueAccent[100],
-              ),
-              hintText: 'Password'),
-        ),
-      )
-    ],
-  );
-}
-
-class _LogInState extends State<LogIn> {
+class _WriteToUsState extends State<WriteToUs> {
   String email;
-  String password;
+  String message;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Color(0xff008ff9),
+        backgroundColor: Colors.white24,
         body: SingleChildScrollView(
           padding: EdgeInsets.symmetric(vertical: 100, horizontal: 30),
           child: Column(
@@ -104,13 +64,12 @@ class _LogInState extends State<LogIn> {
               Text(
                 'NoteJet',
                 style: GoogleFonts.lato(
-                    textStyle: TextStyle(fontSize: 30, color: Colors.white)),
+                    textStyle: TextStyle(fontSize: 60), color: Colors.white),
               ),
               Text(
-                'Log In',
+                'Write To Us',
                 style: GoogleFonts.poppins(
-                  textStyle: TextStyle(fontSize: 22, color: Colors.white),
-                ),
+                    textStyle: TextStyle(fontSize: 40), color: Colors.white),
               ),
               SizedBox(
                 height: 60,
@@ -121,7 +80,7 @@ class _LogInState extends State<LogIn> {
                   Text(
                     'Email',
                     style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 10,
                         fontWeight: FontWeight.bold,
                         color: Colors.white),
                   ),
@@ -141,19 +100,17 @@ class _LogInState extends State<LogIn> {
                         ]),
                     height: 50,
                     child: TextField(
-                      onChanged: (value) {
-                        this.email = value;
-                      },
+                      enabled: false,
                       keyboardType: TextInputType.emailAddress,
                       style: TextStyle(color: Colors.black87),
                       decoration: InputDecoration(
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.only(top: 10),
                           prefixIcon: Icon(
-                            Icons.email,
+                            Icons.lock_outline,
                             color: Colors.blueAccent[100],
                           ),
-                          hintText: 'Email'),
+                          hintText: FirebaseAuth.instance.currentUser.email),
                     ),
                   )
                 ],
@@ -165,9 +122,9 @@ class _LogInState extends State<LogIn> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Password',
+                    'Write To Us',
                     style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 10,
                         fontWeight: FontWeight.bold,
                         color: Colors.white),
                   ),
@@ -175,7 +132,6 @@ class _LogInState extends State<LogIn> {
                     height: 10,
                   ),
                   Container(
-                    alignment: Alignment.centerLeft,
                     decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(10),
@@ -188,18 +144,14 @@ class _LogInState extends State<LogIn> {
                     height: 50,
                     child: TextField(
                       onChanged: (value) {
-                        this.password = value;
+                        this.message = value;
                       },
                       keyboardType: TextInputType.emailAddress,
                       style: TextStyle(color: Colors.black87),
                       decoration: InputDecoration(
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.only(top: 10),
-                          prefixIcon: Icon(
-                            Icons.lock_outline,
-                            color: Colors.blueAccent[100],
-                          ),
-                          hintText: 'Password'),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.only(top: 2, left: 2),
+                      ),
                     ),
                   )
                 ],
@@ -209,28 +161,33 @@ class _LogInState extends State<LogIn> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
-                    print('done');
-                    await FirebaseAuth.instance.signInWithEmailAndPassword(
-                        email: email, password: password);
-                    if (FirebaseAuth.instance.currentUser != null) {
+                    print(message);
+                    CollectionReference users =
+                        FirebaseFirestore.instance.collection('writetous');
+
+                    // Call the user's CollectionReference to add a new user
+                    await users.add({
+                      'email':
+                          FirebaseAuth.instance.currentUser.email, // John Doe
+                      'message': message,
+                      // 42
+                    }).then((value) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         backgroundColor: Colors.green,
-                        content: Text("successfully login with " + email),
+                        content: Text("Thanks for writing....."),
                       ));
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => HomePage()),
-                      );
-                    } else {
+                    }).catchError((error) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         backgroundColor: Colors.green,
-                        content: Text("Sorry login with " + email),
+                        content: Text(
+                            "There is some error....Please Try Again Later"),
                       ));
-                    }
+                    });
                   },
                   child: Text(
-                    'Login',
-                    style: TextStyle(color: Colors.blueAccent, fontSize: 20),
+                    'Send',
+                    style:
+                        TextStyle(color: Colors.blueAccent[100], fontSize: 20),
                   ),
                   style: ElevatedButton.styleFrom(
                       primary: Colors.white,
@@ -239,29 +196,6 @@ class _LogInState extends State<LogIn> {
                           borderRadius: BorderRadius.circular(15))),
                 ),
               ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => SignUp()),
-                  );
-                },
-                child: RichText(
-                    text: TextSpan(children: [
-                  TextSpan(
-                      text: 'Don\'t have an Account? ',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500)),
-                  TextSpan(
-                      text: 'Sign Up',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold))
-                ])),
-              )
             ],
           ),
         ));

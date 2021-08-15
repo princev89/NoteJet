@@ -22,6 +22,9 @@ class _WebViewPageState extends State<WebViewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Document'),
+      ),
       body: SafeArea(
         child: WebView(
           initialUrl: widget.url,
