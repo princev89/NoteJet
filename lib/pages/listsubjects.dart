@@ -37,9 +37,9 @@ class _SubjectListState extends State<SubjectList> {
   // static String get interstitialAdUnitId => Platform.isAndroid
   //     ? 'ca-app-pub-3940256099942544/1033173712'
   //     : 'ca-app-pub-3940256099942544/1033173712';
-  static String get interstitialAdUnitId => Platform.isAndroid
-      ? 'ca-app-pub-9243136424645877/9718385107'
-      : 'ca-app-pub-9243136424645877/9718385107';
+  // static String get interstitialAdUnitId => Platform.isAndroid
+  //     ? 'ca-app-pub-9243136424645877/9718385107'
+  //     : 'ca-app-pub-9243136424645877/9718385107';
   InterstitialAd _interstitialAd;
 
   bool _isInterstitialAdReady = false;
