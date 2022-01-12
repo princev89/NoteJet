@@ -61,9 +61,6 @@ class _BlogsRowState extends State<BlogsRow> {
                         children: [
                           Container(
                             decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Theme.of(context).primaryColor,
-                                ),
                                 borderRadius:
                                     BorderRadius.all(Radius.circular(20))),
                             height: 20,

@@ -28,6 +28,7 @@ dependencies:
   path_provider: ^2.0.2
   dio: any
   url_launcher: ^6.0.9
+  upgrader: ^3.4.1
 
   
 

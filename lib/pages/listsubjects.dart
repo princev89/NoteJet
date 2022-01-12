@@ -6,10 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:notejet/admob_service.dart';
-import 'package:notejet/pages/downloadpage.dart';
 import 'package:notejet/pages/webview.dart';
-
-import 'package:url_launcher/url_launcher.dart';
 
 class SubjectList extends StatefulWidget {
   final String collectionname;
@@ -37,9 +34,9 @@ class _SubjectListState extends State<SubjectList> {
   // static String get interstitialAdUnitId => Platform.isAndroid
   //     ? 'ca-app-pub-3940256099942544/1033173712'
   //     : 'ca-app-pub-3940256099942544/1033173712';
-  // static String get interstitialAdUnitId => Platform.isAndroid
-  //     ? 'ca-app-pub-9243136424645877/9718385107'
-  //     : 'ca-app-pub-9243136424645877/9718385107';
+  static String get interstitialAdUnitId => Platform.isAndroid
+      ? 'ca-app-pub-9243136424645877/9718385107'
+      : 'ca-app-pub-9243136424645877/9718385107';
   InterstitialAd _interstitialAd;
 
   bool _isInterstitialAdReady = false;
@@ -210,7 +207,6 @@ Widget buildUnitCard(BuildContext context, name, url) {
     child: GestureDetector(
         onTap: () async {
           // await launch(url);
-
           Navigator.push(
             context,
             MaterialPageRoute(

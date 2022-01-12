@@ -12,6 +12,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   AdMobService.initialize();
+
   runApp(MyApp());
 }
 
@@ -28,14 +29,14 @@ class _MyAppState extends State<MyApp> {
     initPlatformState();
   }
 
-  // static final String oneSignalAppId = "3744f44f-34cb-4e45-a468-9a0b4b48ee63";
+  static final String oneSignalAppId = "3744f44f-34cb-4e45-a468-9a0b4b48ee63";
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'NoteJet',
       theme: ThemeData(
-        primaryColor: primaryColor,
+        primaryColor: Theme.of(context).primaryColor,
       ),
       home: FirebaseAuth.instance.currentUser != null ? HomePage() : SignUp(),
       debugShowCheckedModeBanner: false,
